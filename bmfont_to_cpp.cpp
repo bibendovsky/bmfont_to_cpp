@@ -1,6 +1,6 @@
 /*
 
-BMFont to CPP converter
+BMFont to CPP header converter
 
 Converts bitmap fonts generated with Bitmap Font Generator
 (http://www.angelcode.com/products/bmfont/) into C++ static data
@@ -31,6 +31,9 @@ Program requirements:
 
 Font requirements:
     .FNT format - text
+    .FNT channel configuration:
+        1) R:3 G:3 B:3 A:0
+        2) R:4 G:4 B:4 A:0
     image format - DDS (alpha, 8 bit)
 */
 
@@ -52,6 +55,9 @@ Font requirements:
 //
 
 /*
+namespace bmf2cpp {
+
+
 class FontInfo {
 public:
     int font_size;
@@ -74,17 +80,17 @@ public:
     int advance_x;
 }; // GlyphInfo
 
-class BmFont {
+class Font {
 public:
-    BmFont() = delete;
+    Font() = delete;
 
-    BmFont(
-        const BmFont& that) = delete;
+    Font(
+        const Font& that) = delete;
 
-    BmFont& operator=(
-        const BmFont& that) = delete;
+    Font& operator=(
+        const Font& that) = delete;
 
-    ~BmFont() = delete;
+    ~Font() = delete;
 
     static const FontInfo& get_info();
 
@@ -97,10 +103,9 @@ public:
 
     static const unsigned char* get_page(
         int page_index);
-}; // BmFont
+}; // Font
 
-// (static)
-const FontInfo& BmFont::get_info()
+const FontInfo& Font::get_info()
 {
     static FontInfo font_info = {
         ...
@@ -109,8 +114,7 @@ const FontInfo& BmFont::get_info()
     return font_info;
 }
 
-// (static)
-const GlyphInfo* BmFont::get_glyph(
+const GlyphInfo* Font::get_glyph(
     char32_t index)
 {
     using Glyphs = std::unordered_map<char32_t,GlyphInfo>;
@@ -128,8 +132,7 @@ const GlyphInfo* BmFont::get_glyph(
     return &glyph_it->second;
 }
 
-// (static)
-int BmFont::get_kerning(
+int Font::get_kerning(
     char32_t left_char,
     char32_t right_char)
 {
@@ -162,8 +165,7 @@ int BmFont::get_kerning(
     return kerning_it->second;
 }
 
-// (static)
-const unsigned char* BmFont::get_page(
+const unsigned char* Font::get_page(
     int page_index)
 {
     using Pages = std::array<std::array<unsigned char,?>,?>;
@@ -174,6 +176,9 @@ const unsigned char* BmFont::get_page(
 
     return pages[page_index].data();
 }
+
+
+} // namespace bmf2cpp
 */
 
 //
@@ -652,14 +657,29 @@ public:
             throw std::runtime_error("Packed data not supported.");
         }
 
-        if (alphaChnl != 0 ||
-            redChnl != 4 ||
-            greenChnl != 4 ||
-            blueChnl != 4)
-        {
-            throw std::runtime_error("Channel count not equal to 4.");
+        auto is_channels_valid = false;
+
+        if (!is_channels_valid) {
+            is_channels_valid |=
+                alphaChnl == 0 &&
+                redChnl == 3 &&
+                greenChnl == 3 &&
+                blueChnl == 3;
         }
 
+        if (!is_channels_valid) {
+            is_channels_valid |=
+                alphaChnl == 0 &&
+                redChnl == 4 &&
+                greenChnl == 4 &&
+                blueChnl == 4;
+        }
+
+        if (!is_channels_valid)
+        {
+            throw std::runtime_error(
+                "Unexpected channel configuration.");
+        }
 
         page_list.resize(pages);
 
@@ -771,6 +791,9 @@ public:
             "#include <unordered_map>" << std::endl <<
             std::endl <<
             std::endl <<
+            "namespace bmf2cpp {" << std::endl <<
+            std::endl <<
+            std::endl <<
             "class FontInfo {" << std::endl <<
             "public:" << std::endl <<
             "    int font_size;" << std::endl <<
@@ -794,17 +817,17 @@ public:
             "}; // GlyphInfo" << std::endl <<
             std::endl <<
             std::endl <<
-            "class BmFont {" << std::endl <<
+            "class Font {" << std::endl <<
             "public:" << std::endl <<
-            "    BmFont() = delete;" << std::endl <<
+            "    Font() = delete;" << std::endl <<
             std::endl <<
-            "    BmFont(" << std::endl <<
-            "        const BmFont& that) = delete;" << std::endl <<
+            "    Font(" << std::endl <<
+            "        const Font& that) = delete;" << std::endl <<
             std::endl <<
-            "    BmFont& operator=(" << std::endl <<
-            "        const BmFont& that) = delete;" << std::endl <<
+            "    Font& operator=(" << std::endl <<
+            "        const Font& that) = delete;" << std::endl <<
             std::endl <<
-            "    ~BmFont() = delete;" << std::endl <<
+            "    ~Font() = delete;" << std::endl <<
             std::endl <<
             "    static const FontInfo& get_info();" << std::endl <<
             std::endl <<
@@ -817,11 +840,10 @@ public:
             std::endl <<
             "    static const unsigned char* get_page(" << std::endl <<
             "        int page_index);" << std::endl <<
-            "}; // BmFont" << std::endl <<
+            "}; // Font" << std::endl <<
             std::endl <<
             std::endl <<
-            "// (static)" << std::endl <<
-            "const FontInfo& BmFont::get_info()" << std::endl <<
+            "const FontInfo& Font::get_info()" << std::endl <<
             "{" << std::endl <<
             "    static FontInfo font_info = {" << std::endl <<
             "        " <<
@@ -844,8 +866,7 @@ public:
         stream <<
             std::endl <<
             std::endl <<
-            "// (static)" << std::endl <<
-            "const GlyphInfo* BmFont::get_glyph(" << std::endl <<
+            "const GlyphInfo* Font::get_glyph(" << std::endl <<
             "    char32_t index)" << std::endl <<
             "{" << std::endl <<
             "    using Glyphs = std::unordered_map<char32_t,GlyphInfo>;" << std::endl <<
@@ -889,8 +910,7 @@ public:
         stream <<
             std::endl <<
             std::endl <<
-            "// (static)" << std::endl <<
-            "int BmFont::get_kerning(" << std::endl <<
+            "int Font::get_kerning(" << std::endl <<
             "    char32_t left_char," << std::endl <<
             "    char32_t right_char)" << std::endl <<
             "{" << std::endl <<
@@ -949,8 +969,7 @@ public:
         stream <<
             std::endl <<
             std::endl <<
-            "// (static)" << std::endl <<
-            "const unsigned char* BmFont::get_page(" << std::endl <<
+            "const unsigned char* Font::get_page(" << std::endl <<
             "    int page_index)" << std::endl <<
             "{" << std::endl <<
             "    using Pages = std::array<std::array<unsigned char," <<
@@ -1000,6 +1019,13 @@ public:
             std::endl <<
             "    return pages[page_index].data();" << std::endl <<
             "}" << std::endl;
+
+
+        // namespace closing
+        stream <<
+            std::endl <<
+            std::endl <<
+            "} // bmf2cpp" << std::endl;
     }
 }; // FntInfo
 
@@ -1009,8 +1035,21 @@ int main(
     char** argv)
 {
     if (argc != 3) {
-        std::cout << "program.exe <fnt_file_name> <out_file_name>" << std::endl;
-        std::cout << std::endl;
+        std::cout <<
+            "BMFont to CPP converter" << std::endl <<
+            std::endl <<
+            "Font requirements:" << std::endl <<
+            "    .FNT format - text" << std::endl <<
+            "    .FNT channel configuration:" << std::endl <<
+            "        1) R:3 G:3 B:3 A:0" << std::endl <<
+            "        2) R:4 G:4 B:4 A:0" << std::endl <<
+            "    image format - DDS (alpha, 8 bit)" << std::endl <<
+            std::endl <<
+            std::endl <<
+            "Usage:" << std::endl <<
+            std::endl <<
+            "app.exe <fnt_file_name> <out_file_name>" << std::endl <<
+            std::endl;
         return 1;
     }
 
