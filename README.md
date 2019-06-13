@@ -4,6 +4,11 @@ Converts bitmap fonts generated with Bitmap Font Generator
 (http://www.angelcode.com/products/bmfont/) into C++ static data
 
 
+Build minimum requirements:
+- C++11 compatible compiler.
+- CMake 3.5.1 (optional without building the example program).
+
+
 MIT License
 
 Copyright (c) 2014-2019 Boris I. Bendovsky (bibendovsky@hotmail.com) and Contributors.
