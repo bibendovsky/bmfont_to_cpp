@@ -31,7 +31,7 @@ SOFTWARE.
 /*
 Program requirements:
     C++11 compatible compiler.
-    Tested with Visual C++ 12 and GCC (MinGW) 4.9.2.
+    CMake 3.5.1 (optional).
 
 Font requirements:
     .FNT format - text
@@ -63,9 +63,8 @@ namespace bmf2cpp
 {
 
 
-class FontInfo
+struct FontInfo
 {
-public:
 	int font_size;
 	int line_height;
 	int base_offset;
@@ -74,9 +73,8 @@ public:
 	int page_height;
 }; // FontInfo
 
-class GlyphInfo
+struct GlyphInfo
 {
-public:
 	int page_id;
 	int page_x;
 	int page_y;
@@ -103,14 +101,14 @@ public:
 	static const FontInfo& get_info();
 
 	static const GlyphInfo* get_glyph(
-		char32_t index);
+		const char32_t index);
 
 	static int get_kerning(
-		char32_t left_char,
-		char32_t right_char);
+		const char32_t left_char,
+		const char32_t right_char);
 
 	static const unsigned char* get_page(
-		int page_index);
+		const int page_index);
 }; // Font
 
 const FontInfo& Font::get_info()
@@ -124,7 +122,7 @@ const FontInfo& Font::get_info()
 }
 
 const GlyphInfo* Font::get_glyph(
-	char32_t index)
+	const char32_t index)
 {
 	using Glyphs = std::unordered_map<char32_t, GlyphInfo>;
 
@@ -144,8 +142,8 @@ const GlyphInfo* Font::get_glyph(
 }
 
 int Font::get_kerning(
-	char32_t left_char,
-	char32_t right_char)
+	const char32_t left_char,
+	const char32_t right_char)
 {
 	using Kernings = std::unordered_map<
 		char32_t,
@@ -181,7 +179,7 @@ int Font::get_kerning(
 }
 
 const unsigned char* Font::get_page(
-	int page_index)
+	const int page_index)
 {
 	using Pages = std::array<std::array<unsigned char, ?>, ?>;
 
@@ -205,52 +203,50 @@ const unsigned char* Font::get_page(
 // ========================================================================
 // DDS stuff
 
-class DDS_PIXELFORMAT
+struct DDS_PIXELFORMAT
 {
-public:
-	uint32_t dwSize;
-	uint32_t dwFlags;
-	uint32_t dwFourCC;
-	uint32_t dwRGBBitCount;
-	uint32_t dwRBitMask;
-	uint32_t dwGBitMask;
-	uint32_t dwBBitMask;
-	uint32_t dwABitMask;
+	std::uint32_t dwSize;
+	std::uint32_t dwFlags;
+	std::uint32_t dwFourCC;
+	std::uint32_t dwRGBBitCount;
+	std::uint32_t dwRBitMask;
+	std::uint32_t dwGBitMask;
+	std::uint32_t dwBBitMask;
+	std::uint32_t dwABitMask;
 }; // DDS_PIXELFORMAT
 
 
 const size_t DDS_HEADER_SIZE = 124;
 
-class DDS_HEADER
+struct DDS_HEADER
 {
-public:
-	uint32_t dwSize;
-	uint32_t dwFlags;
-	uint32_t dwHeight;
-	uint32_t dwWidth;
-	uint32_t dwPitchOrLinearSize;
-	uint32_t dwDepth;
-	uint32_t dwMipMapCount;
-	uint32_t dwReserved1[11];
+	std::uint32_t dwSize;
+	std::uint32_t dwFlags;
+	std::uint32_t dwHeight;
+	std::uint32_t dwWidth;
+	std::uint32_t dwPitchOrLinearSize;
+	std::uint32_t dwDepth;
+	std::uint32_t dwMipMapCount;
+	std::uint32_t dwReserved1[11];
 	DDS_PIXELFORMAT ddspf;
-	uint32_t dwCaps;
-	uint32_t dwCaps2;
-	uint32_t dwCaps3;
-	uint32_t dwCaps4;
-	uint32_t dwReserved2;
+	std::uint32_t dwCaps;
+	std::uint32_t dwCaps2;
+	std::uint32_t dwCaps3;
+	std::uint32_t dwCaps4;
+	std::uint32_t dwReserved2;
 }; // DDS_HEADER
 
-uint32_t MAKEFOURCC(
-	uint8_t a,
-	uint8_t b,
-	uint8_t c,
-	uint8_t d)
+std::uint32_t MAKEFOURCC(
+	std::uint8_t a,
+	std::uint8_t b,
+	std::uint8_t c,
+	std::uint8_t d)
 {
 	return
-		(static_cast<uint32_t>(static_cast<uint8_t>(a)) << 0) |
-		(static_cast<uint32_t>(static_cast<uint8_t>(b)) << 8) |
-		(static_cast<uint32_t>(static_cast<uint8_t>(c)) << 16) |
-		(static_cast<uint32_t>(static_cast<uint8_t>(d)) << 24);
+		(static_cast<std::uint32_t>(static_cast<std::uint8_t>(a)) << 0) |
+		(static_cast<std::uint32_t>(static_cast<std::uint8_t>(b)) << 8) |
+		(static_cast<std::uint32_t>(static_cast<std::uint8_t>(c)) << 16) |
+		(static_cast<std::uint32_t>(static_cast<std::uint8_t>(d)) << 24);
 }
 
 // DDS stuff
@@ -258,7 +254,7 @@ uint32_t MAKEFOURCC(
 
 
 bool is_pow2(
-	int x)
+	const int x)
 {
 	if (x < 0)
 	{
@@ -290,12 +286,12 @@ LineParts parse_line(
 {
 	if (line.empty())
 	{
-		return LineParts();
+		return LineParts{};
 	}
 
 	if (keyword.empty())
 	{
-		throw std::invalid_argument("Empty keyword.");
+		throw std::invalid_argument{"Empty keyword."};
 	}
 
 	enum class State
@@ -334,10 +330,9 @@ LineParts parse_line(
 
 				if (key != keyword)
 				{
-					const std::string error_message =
-						"Keyword not found: \"" + keyword + "\"";
+					const std::string error_message = "Keyword not found: \"" + keyword + "\"";
 
-					throw std::runtime_error(error_message);
+					throw std::runtime_error{error_message};
 				}
 
 				state = State::find_key_begin;
@@ -361,9 +356,7 @@ LineParts parse_line(
 				break;
 
 			case State::find_key_end:
-				while (char_it != line_end_it &&
-					(*char_it) != ' ' &&
-					(*char_it) != '=')
+				while (char_it != line_end_it && (*char_it) != ' ' && (*char_it) != '=')
 				{
 					++char_it;
 				}
@@ -372,7 +365,7 @@ LineParts parse_line(
 
 				if (key.empty())
 				{
-					throw std::runtime_error("Empty key.");
+					throw std::runtime_error{"Empty key."};
 				}
 
 				state = State::find_equal_sign;
@@ -386,7 +379,7 @@ LineParts parse_line(
 
 				if (char_it == line_end_it)
 				{
-					throw std::runtime_error("Equal sign expected.");
+					throw std::runtime_error{"Equal sign expected."};
 				}
 
 				++char_it;
@@ -401,7 +394,7 @@ LineParts parse_line(
 
 				if (char_it == line_end_it)
 				{
-					throw std::runtime_error("Value expected.");
+					throw std::runtime_error{"Value expected."};
 				}
 
 				char_begin_it = char_it;
@@ -416,7 +409,9 @@ LineParts parse_line(
 					if ((*char_it) == ' ')
 					{
 						if (!is_string_value)
+						{
 							break;
+						}
 					}
 					else if (is_string_value && (*char_it) == '\"')
 					{
@@ -430,7 +425,7 @@ LineParts parse_line(
 				{
 					if (char_it == line_end_it)
 					{
-						throw std::runtime_error("Unexpected end of string value.");
+						throw std::runtime_error{"Unexpected end of string value."};
 					}
 					else
 					{
@@ -455,7 +450,7 @@ LineParts parse_line(
 				break;
 
 			default:
-				throw std::runtime_error("Invalid state.");
+				throw std::runtime_error{"Invalid state."};
 		}
 	}
 
@@ -463,9 +458,8 @@ LineParts parse_line(
 }
 
 
-class CharInfo
+struct CharInfo
 {
-public:
 	char32_t id;
 	int x;
 	int y;
@@ -476,16 +470,11 @@ public:
 	int xadvance;
 	int page;
 	int chnl;
-
-	CharInfo()
-	{
-	}
 }; // CharInfo
 
 
-class Page
+struct Page
 {
-public:
 	using Data = std::vector<char>;
 
 
@@ -494,42 +483,11 @@ public:
 	Data data;
 
 
-	Page()
-	{
-	}
-
-	Page(
-		const Page& that) :
-		id(that.id),
-		file(that.file),
-		data(that.data)
-	{
-	}
-
-	Page& operator=(
-		const Page& that)
-	{
-		if (&that != this)
-		{
-			id = that.id;
-			file = that.file;
-			data = that.data;
-		}
-
-		return *this;
-	}
-
-	~Page()
-	{
-	}
-
 	void read_data(
-		int width,
-		int height)
+		const int width,
+		const int height)
 	{
-		std::ifstream stream(
-			file.c_str(),
-			std::ios_base::in | std::ios_base::binary);
+		std::ifstream stream{file, std::ios_base::in | std::ios_base::binary};
 
 		if (!stream.is_open())
 		{
@@ -537,10 +495,10 @@ public:
 			message += file;
 			message + "\".";
 
-			throw std::runtime_error(message.c_str());
+			throw std::runtime_error{message};
 		}
 
-		uint32_t dds_magic;
+		std::uint32_t dds_magic;
 		stream.read(reinterpret_cast<char*>(&dds_magic), 4);
 
 		if (dds_magic != MAKEFOURCC('D', 'D', 'S', ' '))
@@ -549,7 +507,7 @@ public:
 			message += file;
 			message + "\".";
 
-			throw std::runtime_error(message.c_str());
+			throw std::runtime_error{message};
 		}
 
 
@@ -563,7 +521,7 @@ public:
 			message += file;
 			message + "\".";
 
-			throw std::runtime_error(message.c_str());
+			throw std::runtime_error{message};
 		}
 
 		if (dds_header.ddspf.dwRGBBitCount != 8 ||
@@ -573,7 +531,7 @@ public:
 			message += file;
 			message + "\".";
 
-			throw std::runtime_error(message.c_str());
+			throw std::runtime_error{message};
 		}
 
 		auto data_size = width * height;
@@ -587,7 +545,7 @@ public:
 			message += file;
 			message + "\".";
 
-			throw std::runtime_error(message.c_str());
+			throw std::runtime_error{message};
 		}
 	}
 }; // Page
@@ -656,7 +614,7 @@ public:
 
 		if (!std::getline(stream, line))
 		{
-			throw std::runtime_error("Failed to read a line.");
+			throw std::runtime_error{"Failed to read a line."};
 		}
 
 		auto info_parts = parse_line(line, "info");
@@ -668,17 +626,17 @@ public:
 
 		if (size >= 0)
 		{
-			throw std::runtime_error("Positive size.");
+			throw std::runtime_error{"Positive size."};
 		}
 
 		if (stretchH != 100)
 		{
-			throw std::runtime_error("Stretch is not 100%.");
+			throw std::runtime_error{"Stretch is not 100%."};
 		}
 
 		if (outline != 0)
 		{
-			throw std::runtime_error("Outline not allowed.");
+			throw std::runtime_error{"Outline not allowed."};
 		}
 
 
@@ -686,7 +644,7 @@ public:
 
 		if (!std::getline(stream, line))
 		{
-			throw std::runtime_error("Failed to read a line.");
+			throw std::runtime_error{"Failed to read a line."};
 		}
 
 		auto common_parts = parse_line(line, "common");
@@ -704,22 +662,22 @@ public:
 
 		if (base <= 0)
 		{
-			throw std::runtime_error("Invalid base.");
+			throw std::runtime_error{"Invalid base."};
 		}
 
 		if (!is_pow2(scaleW) || !is_pow2(scaleH))
 		{
-			throw std::runtime_error("Non power of two dimensions.");
+			throw std::runtime_error{"Non power of two dimensions."};
 		}
 
 		if (pages <= 0)
 		{
-			throw std::runtime_error("Invalid page count.");
+			throw std::runtime_error{"Invalid page count."};
 		}
 
 		if (packed != 0)
 		{
-			throw std::runtime_error("Packed data not supported.");
+			throw std::runtime_error{"Packed data not supported."};
 		}
 
 		auto is_channels_valid = false;
@@ -744,8 +702,7 @@ public:
 
 		if (!is_channels_valid)
 		{
-			throw std::runtime_error(
-				"Unexpected channel configuration.");
+			throw std::runtime_error{"Unexpected channel configuration."};
 		}
 
 		page_list.resize(pages);
@@ -756,7 +713,7 @@ public:
 
 			if (!std::getline(stream, line))
 			{
-				throw std::runtime_error("Failed to read a line.");
+				throw std::runtime_error{"Failed to read a line."};
 			}
 
 			auto page_parts = parse_line(line, "page");
@@ -771,7 +728,7 @@ public:
 
 		if (!std::getline(stream, line))
 		{
-			throw std::runtime_error("Failed to read a line.");
+			throw std::runtime_error{"Failed to read a line."};
 		}
 
 		auto chars_parts = parse_line(line, "chars");
@@ -785,7 +742,7 @@ public:
 
 			if (!std::getline(stream, line))
 			{
-				throw std::runtime_error("Failed to read a line.");
+				throw std::runtime_error{"Failed to read a line."};
 			}
 
 			auto char_parts = parse_line(line, "char");
@@ -821,7 +778,7 @@ public:
 
 			if (!std::getline(stream, line))
 			{
-				throw std::runtime_error("Failed to read a line.");
+				throw std::runtime_error{"Failed to read a line."};
 			}
 
 			auto kerning_parts = parse_line(line, "kerning");
@@ -853,14 +810,14 @@ public:
 			error_message += file_name;
 			error_message += "\"";
 
-			throw std::runtime_error(error_message.c_str());
+			throw std::runtime_error{error_message};
 		}
 
 		auto data_size = scaleH * scaleW;
 
 		stream <<
 			"//" << std::endl <<
-			"// Generated by application bmfont_to_cpp" << std::endl <<
+			"// Generated by application bmfont_to_cpp." << std::endl <<
 			"//" << std::endl <<
 			std::endl <<
 			std::endl <<
@@ -868,71 +825,72 @@ public:
 			"#include <unordered_map>" << std::endl <<
 			std::endl <<
 			std::endl <<
-			"namespace bmf2cpp {" << std::endl <<
+			"namespace bmf2cpp" << std::endl <<
+			"{" << std::endl <<
 			std::endl <<
 			std::endl <<
-			"class FontInfo {" << std::endl <<
-			"public:" << std::endl <<
-			"    int font_size;" << std::endl <<
-			"    int line_height;" << std::endl <<
-			"    int base_offset;" << std::endl <<
-			"    int page_count;" << std::endl <<
-			"    int page_width;" << std::endl <<
-			"    int page_height;" << std::endl <<
+			"struct FontInfo" << std::endl <<
+			"{" << std::endl <<
+			"\tint font_size;" << std::endl <<
+			"\tint line_height;" << std::endl <<
+			"\tint base_offset;" << std::endl <<
+			"\tint page_count;" << std::endl <<
+			"\tint page_width;" << std::endl <<
+			"\tint page_height;" << std::endl <<
 			"}; // FontInfo" << std::endl <<
 			std::endl <<
-			"class GlyphInfo {" << std::endl <<
-			"public:" << std::endl <<
-			"    int page_id;" << std::endl <<
-			"    int page_x;" << std::endl <<
-			"    int page_y;" << std::endl <<
-			"    int width;" << std::endl <<
-			"    int height;" << std::endl <<
-			"    int offset_x;" << std::endl <<
-			"    int offset_y;" << std::endl <<
-			"    int advance_x;" << std::endl <<
+			"struct GlyphInfo" << std::endl <<
+			"{" << std::endl <<
+			"\tint page_id;" << std::endl <<
+			"\tint page_x;" << std::endl <<
+			"\tint page_y;" << std::endl <<
+			"\tint width;" << std::endl <<
+			"\tint height;" << std::endl <<
+			"\tint offset_x;" << std::endl <<
+			"\tint offset_y;" << std::endl <<
+			"\tint advance_x;" << std::endl <<
 			"}; // GlyphInfo" << std::endl <<
 			std::endl <<
 			std::endl <<
-			"class Font {" << std::endl <<
-			"public:" << std::endl <<
-			"    Font() = delete;" << std::endl <<
+			"struct Font" << std::endl <<
+			"{" << std::endl <<
+			"\tFont() = delete;" << std::endl <<
 			std::endl <<
-			"    Font(" << std::endl <<
-			"        const Font& that) = delete;" << std::endl <<
+			"\tFont(" << std::endl <<
+			"\t\tconst Font& that) = delete;" << std::endl <<
 			std::endl <<
-			"    Font& operator=(" << std::endl <<
-			"        const Font& that) = delete;" << std::endl <<
+			"\tFont& operator=(" << std::endl <<
+			"\t\tconst Font& that) = delete;" << std::endl <<
 			std::endl <<
-			"    ~Font() = delete;" << std::endl <<
+			"\t~Font() = delete;" << std::endl <<
 			std::endl <<
-			"    static const FontInfo& get_info();" << std::endl <<
+			"\tstatic const FontInfo& get_info();" << std::endl <<
 			std::endl <<
-			"    static const GlyphInfo* get_glyph(" << std::endl <<
-			"        char32_t index);" << std::endl <<
+			"\tstatic const GlyphInfo* get_glyph(" << std::endl <<
+			"\t\tconst char32_t index);" << std::endl <<
 			std::endl <<
-			"    static int get_kerning(" << std::endl <<
-			"        char32_t left_char," << std::endl <<
-			"        char32_t right_char);" << std::endl <<
+			"\tstatic int get_kerning(" << std::endl <<
+			"\t\tconst char32_t left_char," << std::endl <<
+			"\t\tconst char32_t right_char);" << std::endl <<
 			std::endl <<
-			"    static const unsigned char* get_page(" << std::endl <<
-			"        int page_index);" << std::endl <<
+			"\tstatic const unsigned char* get_page(" << std::endl <<
+			"\t\tconst int page_index);" << std::endl <<
 			"}; // Font" << std::endl <<
 			std::endl <<
 			std::endl <<
 			"const FontInfo& Font::get_info()" << std::endl <<
 			"{" << std::endl <<
-			"    static FontInfo font_info = {" << std::endl <<
-			"        " <<
+			"\tstatic FontInfo font_info = {" << std::endl <<
+			"\t\t" <<
 			size << ", " <<
 			lineHeight << ", " <<
 			base << ", " <<
 			page_list.size() << ", " <<
 			scaleW << ", " <<
 			scaleH << std::endl <<
-			"    }; // font_info" << std::endl <<
+			"\t}; // font_info" << std::endl <<
 			std::endl <<
-			"    return font_info;" << std::endl <<
+			"\treturn font_info;" << std::endl <<
 			"}" << std::endl;
 
 
@@ -944,18 +902,18 @@ public:
 			std::endl <<
 			std::endl <<
 			"const GlyphInfo* Font::get_glyph(" << std::endl <<
-			"    char32_t index)" << std::endl <<
+			"\tconst char32_t index)" << std::endl <<
 			"{" << std::endl <<
-			"    using Glyphs = std::unordered_map<char32_t,GlyphInfo>;" << std::endl <<
+			"\tusing Glyphs = std::unordered_map<char32_t, GlyphInfo>;" << std::endl <<
 			std::endl <<
-			"    static const Glyphs glyphs = {" << std::endl;
+			"\tstatic const Glyphs glyphs = {" << std::endl;
 
 		for (size_t i = 0; i < chars.size(); ++i)
 		{
 			const auto& ch = chars[i];
 
 			stream <<
-				"        { " <<
+				"\t\t{ " <<
 				ch.id << ", { " <<
 				ch.page << ", " <<
 				ch.x << ", " <<
@@ -969,15 +927,16 @@ public:
 		}
 
 		stream <<
-			"    }; // glyphs" << std::endl <<
+			"\t}; // glyphs" << std::endl <<
 			std::endl <<
-			"    auto glyph_it = glyphs.find(index);" << std::endl <<
+			"\tauto glyph_it = glyphs.find(index);" << std::endl <<
 			std::endl <<
-			"    if (glyph_it == glyphs.cend()) {" << std::endl <<
-			"        return nullptr;" << std::endl <<
-			"    }" << std::endl <<
+			"\tif (glyph_it == glyphs.cend())" << std::endl <<
+			"\t{" << std::endl <<
+			"\t\treturn nullptr;" << std::endl <<
+			"\t}" << std::endl <<
 			std::endl <<
-			"    return &glyph_it->second;" << std::endl <<
+			"\treturn &glyph_it->second;" << std::endl <<
 			"}" << std::endl;
 
 
@@ -989,56 +948,59 @@ public:
 			std::endl <<
 			std::endl <<
 			"int Font::get_kerning(" << std::endl <<
-			"    char32_t left_char," << std::endl <<
-			"    char32_t right_char)" << std::endl <<
+			"\tchar32_t left_char," << std::endl <<
+			"\tchar32_t right_char)" << std::endl <<
 			"{" << std::endl <<
-			"    using Kernings = std::unordered_map<" << std::endl <<
-			"        char32_t," << std::endl <<
-			"        std::unordered_map<char32_t,int>>;" << std::endl <<
+			"\tusing Kernings = std::unordered_map<" << std::endl <<
+			"\t\tchar32_t," << std::endl <<
+			"\t\tstd::unordered_map<char32_t, int>>;" << std::endl <<
 			std::endl <<
-			"    static const Kernings kernings = {" << std::endl;
+			"\tstatic const Kernings kernings = {" << std::endl;
 
 		for (const auto& kerning : kernings)
 		{
 			stream <<
-				"        {" << std::endl <<
-				"            " << kerning.first << "," << std::endl <<
-				"            {" << std::endl;
+				"\t\t{" << std::endl <<
+				"\t\t\t" << kerning.first << "," << std::endl <<
+				"\t\t\t{" << std::endl;
 
 			for (const auto& sub_kerning : kerning.second)
 			{
 				stream <<
-					"                { " << sub_kerning.first << ", " <<
+					"\t\t\t\t{ " << sub_kerning.first << ", " <<
 					sub_kerning.second << " }," << std::endl;
 			}
 
 			stream <<
-				"            }" << std::endl <<
-				"        }," << std::endl;
+				"\t\t\t}" << std::endl <<
+				"\t\t}," << std::endl;
 		}
 
 		stream <<
-			"    }; // kernings" << std::endl <<
+			"\t}; // kernings" << std::endl <<
 			std::endl <<
-			"    if (left_char == '\\0' || right_char == '\\0') {" << std::endl <<
-			"        return 0;" << std::endl <<
-			"    }" << std::endl <<
+			"\tif (left_char == '\\0' || right_char == '\\0')" << std::endl <<
+			"\t{" << std::endl <<
+			"\t\treturn 0;" << std::endl <<
+			"\t}" << std::endl <<
 			std::endl <<
-			"    auto sub_kerning_it = kernings.find(left_char);" << std::endl <<
+			"\tauto sub_kerning_it = kernings.find(left_char);" << std::endl <<
 			std::endl <<
-			"    if (sub_kerning_it == kernings.cend()) {" << std::endl <<
-			"        return 0;" << std::endl <<
-			"    }" << std::endl <<
+			"\tif (sub_kerning_it == kernings.cend())" << std::endl <<
+			"\t{" << std::endl <<
+			"\t\treturn 0;" << std::endl <<
+			"\t}" << std::endl <<
 			std::endl <<
-			"    const auto& sub_kerning = sub_kerning_it->second;" << std::endl <<
+			"\tconst auto& sub_kerning = sub_kerning_it->second;" << std::endl <<
 			std::endl <<
-			"    auto kerning_it = sub_kerning.find(right_char);" << std::endl <<
+			"\tauto kerning_it = sub_kerning.find(right_char);" << std::endl <<
 			std::endl <<
-			"    if (kerning_it == sub_kerning.cend()) {" << std::endl <<
-			"        return 0;" << std::endl <<
-			"    }" << std::endl <<
+			"\tif (kerning_it == sub_kerning.cend())" << std::endl <<
+			"\t{" << std::endl <<
+			"\t\treturn 0;" << std::endl <<
+			"\t}" << std::endl <<
 			std::endl <<
-			"    return kerning_it->second;" << std::endl <<
+			"\treturn kerning_it->second;" << std::endl <<
 			"}" << std::endl;
 
 
@@ -1050,18 +1012,18 @@ public:
 			std::endl <<
 			std::endl <<
 			"const unsigned char* Font::get_page(" << std::endl <<
-			"    int page_index)" << std::endl <<
+			"\tconst int page_index)" << std::endl <<
 			"{" << std::endl <<
-			"    using Pages = std::array<std::array<unsigned char," <<
-			data_size << ">," << page_list.size() << ">;" << std::endl <<
+			"\tusing Pages = std::array<std::array<unsigned char, " <<
+			data_size << ">, " << page_list.size() << ">;" << std::endl <<
 			std::endl <<
-			"    static const Pages pages = {{" << std::endl;
+			"\tstatic const Pages pages = {{" << std::endl;
 
 		const int octets_per_line = 11;
 
 		for (auto i = 0; i < pages; ++i)
 		{
-			stream << "        {" << std::endl;
+			stream << "\t\t{" << std::endl;
 
 			stream << std::setfill('0') << std::uppercase;
 
@@ -1077,7 +1039,9 @@ public:
 				auto is_last_octet = ((j + 1) == data_size);
 
 				if (is_first_octet)
-					stream << "            ";
+				{
+					stream << "\t\t\t";
+				}
 
 				stream << "0x" << std::hex << std::setw(2) <<
 					static_cast<int>(static_cast<unsigned char>(o)) << std::dec << ',';
@@ -1099,13 +1063,13 @@ public:
 				}
 			}
 
-			stream << "        }," << std::endl;
+			stream << "\t\t}," << std::endl;
 		}
 
 		stream <<
-			"    }}; // pages" << std::endl <<
+			"\t}}; // pages" << std::endl <<
 			std::endl <<
-			"    return pages[page_index].data();" << std::endl <<
+			"\treturn pages[page_index].data();" << std::endl <<
 			"}" << std::endl;
 
 
@@ -1143,7 +1107,7 @@ int main(
 	}
 
 	std::string fnt_file_name(argv[1]);
-	std::ifstream fnt_stream(fnt_file_name.c_str());
+	std::ifstream fnt_stream(fnt_file_name);
 
 	if (!fnt_stream.is_open())
 	{
