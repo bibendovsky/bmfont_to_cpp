@@ -948,8 +948,8 @@ public:
 			std::endl <<
 			std::endl <<
 			"int Font::get_kerning(" << std::endl <<
-			"\tchar32_t left_char," << std::endl <<
-			"\tchar32_t right_char)" << std::endl <<
+			"\tconst char32_t left_char," << std::endl <<
+			"\tconst char32_t right_char)" << std::endl <<
 			"{" << std::endl <<
 			"\tusing Kernings = std::unordered_map<" << std::endl <<
 			"\t\tchar32_t," << std::endl <<
