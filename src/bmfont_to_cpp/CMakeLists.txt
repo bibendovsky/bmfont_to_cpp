@@ -24,3 +24,17 @@ install(
 	RUNTIME
 		DESTINATION .
 )
+
+install(
+	FILES
+		${CMAKE_SOURCE_DIR}/COPYING
+	DESTINATION "."
+	RENAME bmfont_to_cpp_license.txt
+)
+
+install(
+	FILES
+		${CMAKE_SOURCE_DIR}/README.md
+	DESTINATION "."
+	RENAME bmfont_to_cpp_readme.txt
+)
