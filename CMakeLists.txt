@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
-project(bmfont_to_cpp_solution VERSION 1.0.0)
+project(bmfont_to_cpp_solution VERSION 1.0.1)
 
 option(BMF2CPP_BUILD_SDL2_EXAMPLE "Build SDL2 example program." ON)
 
