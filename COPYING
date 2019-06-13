@@ -1,9 +1,3 @@
-BMFont to CPP converter
-
-Converts bitmap fonts generated with Bitmap Font Generator
-(http://www.angelcode.com/products/bmfont/) into C++ static data
-
-
 MIT License
 
 Copyright (c) 2014-2019 Boris I. Bendovsky (bibendovsky@hotmail.com) and Contributors.
