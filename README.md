@@ -7,6 +7,7 @@ Converts bitmap fonts generated with Bitmap Font Generator
 Build minimum requirements:
 - C++11 compatible compiler.
 - CMake 3.5.1 (optional without building the example program).
+- SDL v2.0.0 (optional without building the example program).
 
 
 MIT License
