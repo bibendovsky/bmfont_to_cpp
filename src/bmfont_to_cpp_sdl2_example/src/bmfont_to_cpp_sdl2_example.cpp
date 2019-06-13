@@ -1,7 +1,5 @@
-﻿#include <codecvt>
-#include <cstdint>
+﻿#include <cstdint>
 #include <iostream>
-#include <locale>
 #include <memory>
 #include <vector>
 #include "SDL.h"
@@ -25,6 +23,7 @@ using SdlWindowUPtr = SdlUPtr<SDL_Window, ::SDL_DestroyWindow>;
 using SdlRendererUPtr = SdlUPtr<SDL_Renderer, ::SDL_DestroyRenderer>;
 using SdlTextureUPtr = SdlUPtr<SDL_Texture, ::SDL_DestroyTexture>;
 using SdlSurfaceUPtr = SdlUPtr<SDL_Surface, ::SDL_FreeSurface>;
+using SdlMiscUPtr = SdlUPtr<void, ::SDL_free>;
 
 using SdlTextures = std::vector<SdlTextureUPtr>;
 
@@ -229,32 +228,28 @@ bool create_sdl_textures()
 	return true;
 }
 
-#ifdef _MSC_VER
 std::u32string to_utf32(
 	const std::string& string_utf8)
 {
-	using StringUint32 = std::basic_string<std::uint32_t>;
+	if (string_utf8.empty())
+	{
+		return std::u32string{};
+	}
 
-	std::wstring_convert<std::codecvt_utf8<std::uint32_t>, std::uint32_t> converter;
+	const auto c_string_u32 = SdlMiscUPtr{::SDL_iconv_string(
+		"UCS-4-INTERNAL",
+		"UTF-8",
+		string_utf8.c_str(),
+		string_utf8.size() + 1
+	)};
 
-	auto string_uint32 = converter.from_bytes(string_utf8);
+	if (c_string_u32 == nullptr)
+	{
+		return std::u32string{};
+	}
 
-	auto string_utf32 = std::u32string{
-		reinterpret_cast<const char32_t*>(string_uint32.c_str()),
-		string_uint32.size()
-	};
-
-	return string_utf32;
+	return std::u32string{reinterpret_cast<const char32_t*>(c_string_u32.get())};
 }
-#else
-std::u32string to_utf32(
-	const std::string& string_utf8)
-{
-	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
-
-	return converter.from_bytes(string_utf8);
-}
-#endif // _MSC_VER
 
 bool render_string(
 	const int x,
